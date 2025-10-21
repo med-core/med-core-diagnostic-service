@@ -1,0 +1,56 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Diagnostic {
+  id                  String    @id @default(auto()) @map("_id") @db.ObjectId
+  patientId           String    @db.ObjectId
+  doctorId            String    @db.ObjectId
+  title               String
+  description         String
+  symptoms            String
+  diagnosis           String
+  treatment           String
+  observations        String?
+  diagnosisDate       DateTime  @default(now())
+  nextAppointment     DateTime?
+  state               DiagnosticState @default(ACTIVE)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  documents           DiagnosticDocument[]
+}
+
+model DiagnosticDocument {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  diagnosticId   String   @db.ObjectId
+  diagnostic     Diagnostic @relation(fields: [diagnosticId], references: [id])
+  filename       String
+  storedfilename String
+  filepath       String
+  fileType       String
+  mimeType       String
+  fileSize       Int
+  description    String?
+  uploadedBy     String   @db.ObjectId
+  uploadedAt     DateTime @default(now())
+  createdAt      DateTime @default(now())
+}
+
+enum DiagnosticState {
+  ACTIVE
+  INACTIVE
+  DELETED
+}
