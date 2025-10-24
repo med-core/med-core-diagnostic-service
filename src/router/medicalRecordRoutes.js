@@ -1,20 +1,39 @@
 import express from "express";
-import { verifyToken } from "../middlewares/verifyToken.js";
+import { attachUserFromToken } from "../middlewares/verifyToken.js";
 import { requireRole } from "../middlewares/roleMiddleware.js";
 import {
   getMedicalRecords,
   createMedicalRecord,
   deleteMedicalRecord,
 } from "../controllers/MedicalRecordController.js";
+import multer from "multer";
+const upload = multer();
 
 const router = express.Router();
 
-// Ver historiales
-router.get("/:patientId", verifyToken, requireRole("PACIENTE", "MEDICO", "ADMINISTRADOR"), getMedicalRecords);
-// Crear historial
-router.post("/", verifyToken, requireRole("MEDICO", "ADMINISTRADOR"), createMedicalRecord);
+// Listar diagnósticos de un paciente
+router.get(
+  "/patients/:patientId/diagnostics",
+  attachUserFromToken,
+  requireRole("PACIENTE", "MEDICO", "ADMINISTRADOR"),
+  getMedicalRecords
+);
 
-// Eliminar historial
-router.delete("/:id", verifyToken, requireRole("ADMINISTRADOR"), deleteMedicalRecord);
+// Crear diagnóstico
+router.post(
+  "/patients/:patientId/diagnostics",
+  attachUserFromToken,
+  requireRole("MEDICO", "ADMINISTRADOR"),
+  upload.any(),
+  createMedicalRecord
+);
+
+// Eliminar diagnóstico
+router.delete(
+  "/diagnostics/:id",
+  attachUserFromToken,
+  requireRole("ADMINISTRADOR"),
+  deleteMedicalRecord
+);
 
 export default router;

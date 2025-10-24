@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import { connectDB } from "./config/database.js";
 import diagnosticRoutes from "./router/medicalRecordRoutes.js";
+import { sendError } from "./utils/errorHandler.js"
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -16,13 +17,15 @@ app.get("/health", (req, res) => {
 });
 
 // Rutas reales del microservicio
-app.use("/api/v1/diagnostic", diagnosticRoutes);
+app.use("/api/v1", diagnosticRoutes);
 
 // Ruta de prueba
 app.get("/", (req, res) => {
  res.send("Diagnostic Service funcionando correctamente");
 });
-
+app.use((err, req, res, next) => {
+  sendError(err, res);
+});
 
 
 async function startServer() {

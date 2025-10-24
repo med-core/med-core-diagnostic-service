@@ -1,22 +1,21 @@
-import axios from "axios";
+import jwt from "jsonwebtoken";
 
-export const verifyToken = async (req, res, next) => {
+export const attachUserFromToken = (req, res, next) => {
   try {
-    const token = req.headers.authorization?.split(" ")[1];
-    if (!token) {
-      return res.status(401).json({ error: "Token no proporcionado" });
-    }
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ error: "Usuario no autenticado" });
 
-    // Llamada al microservicio Auth para validar el token
-    const response = await axios.get("http://med-core-auth-service:3000/auth/verify", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const token = authHeader.split(" ")[1];
+    if (!token) return res.status(401).json({ error: "Token no proporcionado" });
 
-    // Si el token es válido, agregamos los datos del usuario a la request
-    req.user = response.data.user;
+    // Decodificar JWT (usar la misma secret que Auth Service)
+    const user = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = user;
+    console.log("DIAGNOSTIC SERVICE -> req.user reconstruido:", req.user);
+
     next();
-  } catch (error) {
-    console.error("Error verificando token:", error.response?.data || error.message);
+  } catch (err) {
+    console.error("DIAGNOSTIC SERVICE -> Error verificando token:", err.message);
     return res.status(401).json({ error: "Token inválido o expirado" });
   }
 };
