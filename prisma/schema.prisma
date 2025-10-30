@@ -17,7 +17,7 @@ datasource db {
 model Diagnostic {
   id                  String    @id @default(auto()) @map("_id") @db.ObjectId
   patientId           String    @db.ObjectId
-  doctorId            String    @db.ObjectId
+  medicoId            String    @db.ObjectId
   title               String
   description         String
   symptoms            String

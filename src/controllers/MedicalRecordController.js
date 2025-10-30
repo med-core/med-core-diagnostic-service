@@ -96,3 +96,53 @@ export const deleteMedicalRecord = async (req, res) => {
     res.status(500).json({ message: "Error interno al eliminar diagnóstico." });
   }
 };
+
+export const searchDiagnostics = async (req, res) => {
+  try {
+    const { diagnostic, dateFrom, dateTo } = req.query;
+    const filters = {};
+
+    if (diagnostic) {
+      filters.title = { contains: String(diagnostic).trim(), mode: "insensitive" };
+    }
+
+    if (dateFrom || dateTo) {
+      const dateFilter = {};
+      if (dateFrom && !isNaN(new Date(dateFrom).getTime())) {
+        dateFilter.gte = new Date(`${dateFrom}T00:00:00Z`);
+      }
+      if (dateTo && !isNaN(new Date(dateTo).getTime())) {
+        dateFilter.lte = new Date(`${dateTo}T23:59:59Z`);
+      }
+      if (Object.keys(dateFilter).length > 0) {
+        filters.diagnosisDate = dateFilter;
+      }
+    }
+
+    const diagnostics = await prisma.diagnostic.findMany({
+      where: filters,
+      orderBy: { diagnosisDate: "desc" },
+      select: {
+        id: true,
+        title: true,
+        diagnosisDate: true,
+        patientId: true,
+      },
+    });
+
+    console.log("DIAGNÓSTICOS ENCONTRADOS:", diagnostics);
+
+    return res.status(200).json({
+      message: "Búsqueda completada",
+      count: diagnostics.length,
+      data: diagnostics,
+    });
+  } catch (err) {
+    console.error("Error buscando diagnósticos:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Error buscando diagnósticos",
+      error: err.message,
+    });
+  }
+};

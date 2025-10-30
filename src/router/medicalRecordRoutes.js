@@ -5,6 +5,7 @@ import {
   getMedicalRecords,
   createMedicalRecord,
   deleteMedicalRecord,
+  searchDiagnostics,
 } from "../controllers/MedicalRecordController.js";
 import multer from "multer";
 const upload = multer();
@@ -18,7 +19,12 @@ router.get(
   requireRole("PACIENTE", "MEDICO", "ADMINISTRADOR"),
   getMedicalRecords
 );
-
+router.get(
+  "/diagnostics/search",
+  attachUserFromToken,
+  requireRole("MEDICO", "ADMINISTRADOR"),
+  searchDiagnostics
+);
 // Crear diagnóstico
 router.post(
   "/patients/:patientId/diagnostics",
